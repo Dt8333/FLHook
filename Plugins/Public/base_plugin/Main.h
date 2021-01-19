@@ -244,6 +244,7 @@ public:
 
 	bool AddToQueue(uint the_equipment_type);
 	bool ClearQueue();
+	void ClearRecipe();
 };
 
 class BasePassword
@@ -361,6 +362,7 @@ public:
 
 	// List of ships that are hostile to this base
 	map<wstring, wstring> hostile_tags;
+	map<wstring, float> hostile_tags_damage;
 
 	// List of ships that are permanently hostile to this base
 	list<wstring> perma_hostile_tags;
@@ -404,6 +406,7 @@ public:
 
 	//the destination vector
 	Vector destposition;
+
 	/////////////////////////////////////////
 };
 
@@ -592,4 +595,5 @@ extern string set_status_path_json;
 
 extern const char* MODULE_TYPE_NICKNAMES[13];
 
+extern float damage_threshold;
 #endif
