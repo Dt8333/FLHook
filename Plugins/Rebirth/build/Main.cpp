@@ -434,6 +434,7 @@ void UserCmd_aBuild(uint iClientID, const wstring &wscParam)
 	int countgoods = 0;
 	int countgoodsT = 0;
 	int BuildNumber = ToInt(GetParam(wscParam, ' ', 0));
+	int BuildMulti = 0;
 	list<INISECTIONVALUE> lstBuilds;
 	list<INISECTIONVALUE> lstParts;
 	list<CARGO_INFO> lstCargo;
@@ -444,6 +445,8 @@ void UserCmd_aBuild(uint iClientID, const wstring &wscParam)
 		{
 		    if(counter==BuildNumber)
 			{
+				BuildMulti = ToInt(builds->scValue.c_str());
+				if (BuildMulti == 0)BuildMulti = 1;
 				IniGetSection(set_scBuildFilea, builds->scKey.c_str(), lstParts);
 		        foreach(lstParts,INISECTIONVALUE,parts)
 				{
@@ -492,7 +495,7 @@ void UserCmd_aBuild(uint iClientID, const wstring &wscParam)
 				    pub::Player::GetRemainingHoldSize(iClientID, fRemainingHold);
 				    if(id->iType == 0)
 					{
-		                if(eq->fVolume*wscCount > fRemainingHold)
+		                if(eq->fVolume*wscCount*BuildMulti > fRemainingHold)
 						{
 					        PrintUserCmdText(iClientID, L"You dont have enough cargo space");
 					        wscCount = 0;
@@ -512,7 +515,7 @@ void UserCmd_aBuild(uint iClientID, const wstring &wscParam)
 				        if(cargo->iArchID == iShieldBatID){sCount = cargo->iCount;}
                         if(wscGoods == iNanobotsID)
 						{
-						    uint amount = nCount+wscCount;
+						    uint amount = nCount+wscCount* BuildMulti;
 			                if(amount > ship->iMaxNanobots)
 							{
 				                PrintUserCmdText(iClientID, L"Warning: the number of nanobots is greater than allowed");
@@ -521,7 +524,7 @@ void UserCmd_aBuild(uint iClientID, const wstring &wscParam)
 						}
                         if(wscGoods == iShieldBatID)
 						{
-                            uint amount = sCount+wscCount;
+                            uint amount = sCount+wscCount* BuildMulti;
 			                if(amount > ship->iMaxShieldBats)
 							{
 				                PrintUserCmdText(iClientID, L"Warning: the number of shield batteries is greater than allowed");
@@ -535,12 +538,12 @@ void UserCmd_aBuild(uint iClientID, const wstring &wscParam)
 					    foreach(lstCargo, CARGO_INFO, cargo)
 						{
 						    if(cargo->iArchID == wscGoods){uCount = cargo->iCount;}
-						    if(wscCount+uCount > MAX_PLAYER_AMMO)
+						    if(wscCount* BuildMulti +uCount > MAX_PLAYER_AMMO)
 							{
 							    PrintUserCmdText(iClientID, L"Warning: the number of goods is greater than allowed");
 							    wscCount=0;
 							}
-						    if(eq->fVolume*wscCount > fRemainingHold)
+						    if(eq->fVolume*wscCount* BuildMulti > fRemainingHold)
 							{
 					            PrintUserCmdText(iClientID, L"You dont have enough cargo space");
 					            wscCount = 0;
@@ -562,7 +565,7 @@ void UserCmd_aBuild(uint iClientID, const wstring &wscParam)
 								}
 							}
 						}
-					    HkAddCargo(ARG_CLIENTID(iClientID), wscGoods, wscCount, false);
+					    HkAddCargo(ARG_CLIENTID(iClientID), wscGoods, wscCount* BuildMulti, false);
 						PrintUserCmdText(iClientID, L"Item Built");
 					}
 					Archetype::Gun *gun = (Archetype::Gun *)eq;
@@ -587,8 +590,10 @@ void UserCmd_aBuild(uint iClientID, const wstring &wscParam)
 		char buffer[256]="";
 		uint BuildsID = CreateID(builds->scKey.c_str());
 		IniGetSection(set_scBuildFilea, builds->scKey.c_str(), lstParts);
+		BuildMulti = ToInt(builds->scValue.c_str());
+		if (BuildMulti == 0)BuildMulti = 1;
 		const GoodInfo *gi = GoodList::find_by_id(BuildsID);
-		sprintf(buffer,"(%i)%s-->", counter, wstos(HkGetWStringFromIDS(gi->iIDSName)).c_str());
+		sprintf(buffer,"(%i)%d*%s-->", counter, BuildMulti, wstos(HkGetWStringFromIDS(gi->iIDSName)).c_str());
 		List+=buffer;
 		counter++;
 		foreach(lstParts,INISECTIONVALUE,parts)
